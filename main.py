@@ -95,7 +95,6 @@ def update():
 
 def calculate():
     update()
-    
     price_value.config(text=str(round(option.price(), 3)))
     delta_value.config(text=str(round(option.delta(), 3)))
     gamma_value.config(text=str(round(option.gamma(), 3)))
@@ -116,6 +115,7 @@ price_label.grid(row=0, column=0)
 
 price_entry = tk.Entry(implied_volatility_window)
 price_entry.grid(row=0, column=1)
+price_entry.insert(0, str(round(option.price(), 3)))
 
 # second column
 implied_volatility_label = tk.Label(implied_volatility_window, text='Implied Volatility')
@@ -123,11 +123,11 @@ implied_volatility_label.grid(row=1, column=0)
 
 implied_volatility_value = tk.Label(implied_volatility_window, text='0')
 implied_volatility_value.grid(row=1, column=1)
+implied_volatility_value.config(text=str(round(100*option.implied_volatility(option.price()), 3)) + '%')
 
 # third column
 def calculate_implied_volatility():
     update()
-
     price = float(price_entry.get())
     implied_volatility_value.config(text=str(round(100*option.implied_volatility(price), 3)) + '%')
 
