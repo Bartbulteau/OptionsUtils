@@ -141,6 +141,10 @@ implied_volatility_window.grid_columnconfigure(3, minsize=50)
 # adapt window size to the number of widgets
 root.grid_rowconfigure(6, minsize=50)
 root.grid_columnconfigure(3, minsize=50)
+root.geometry('+%d+%d' % (50, 50))
+
+# move the implied volatility window to the right of the main window
+implied_volatility_window.geometry('+%d+%d' % (50 + 2.2*root.winfo_width(), 50))
 
 # name the window
 root.title('Black-Scholes Pricer')
