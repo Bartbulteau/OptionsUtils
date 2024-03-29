@@ -84,13 +84,17 @@ rho_value = tk.Label(text='0')
 rho_value.grid(row=5, column=3)
 
 # third column
-def calculate():
+def update():
     option.S0 = float(S0_entry.get())
     option.K = float(K_entry.get())
     option.r = float(r_entry.get())
     option.T = float(T_entry.get())
     option.sigma = float(sigma_entry.get())
     option.option_type = option_type_str.get()
+
+
+def calculate():
+    update()
     
     price_value.config(text=str(round(option.price(), 3)))
     delta_value.config(text=str(round(option.delta(), 3)))
@@ -102,33 +106,44 @@ def calculate():
 calculate_button = tk.Button(text='Calculate', command=calculate)
 calculate_button.grid(row=6, column=3)
 
-# fourth column
+# create separate window for implied volatility
+implied_volatility_window = tk.Toplevel(root)
+implied_volatility_window.title('Implied Volatility')
 
-price_label = tk.Label(text='Price')
-price_label.grid(row=1, column=4)
-price_entry = tk.Entry()
-price_entry.grid(row=1, column=5)
-price_entry.insert(0, str(round(option.price(), 3)))
+# first column
+price_label = tk.Label(implied_volatility_window, text='Price')
+price_label.grid(row=0, column=0)
 
-implied_volatility = tk.Label(text='Implied Volatility')
-implied_volatility.grid(row=2, column=4)
-implied_volatility_value = tk.Label(text='0')
-implied_volatility_value.grid(row=2, column=5)
+price_entry = tk.Entry(implied_volatility_window)
+price_entry.grid(row=0, column=1)
 
+# second column
+implied_volatility_label = tk.Label(implied_volatility_window, text='Implied Volatility')
+implied_volatility_label.grid(row=1, column=0)
+
+implied_volatility_value = tk.Label(implied_volatility_window, text='0')
+implied_volatility_value.grid(row=1, column=1)
+
+# third column
 def calculate_implied_volatility():
-    price = float(price_entry.get())
-    implied_volatility_value.config(text=str(round(option.implied_volatility(price), 3)))
+    update()
 
-calculate_implied_volatility_button = tk.Button(text='Calculate', command=calculate_implied_volatility)
-calculate_implied_volatility_button.grid(row=3, column=5)
+    price = float(price_entry.get())
+    implied_volatility_value.config(text=str(round(100*option.implied_volatility(price), 3)) + '%')
+
+calculate_implied_volatility_button = tk.Button(implied_volatility_window, text='Calculate', command=calculate_implied_volatility)
+calculate_implied_volatility_button.grid(row=2, column=1)
+
+# adapt window size to the number of widgets
+implied_volatility_window.grid_rowconfigure(2, minsize=50)
+implied_volatility_window.grid_columnconfigure(3, minsize=50)
 
 # adapt window size to the number of widgets
 root.grid_rowconfigure(6, minsize=50)
-root.grid_columnconfigure(5, minsize=50)
+root.grid_columnconfigure(3, minsize=50)
 
 # name the window
 root.title('Black-Scholes Pricer')
 calculate()
-calculate_implied_volatility()
 
 root.mainloop()
