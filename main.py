@@ -1,5 +1,11 @@
 import tkinter as tk
 from options import Option
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import seaborn as sns
+import yfinance as yf
+
+sns.set()
 
 # default values
 S0 = 100
@@ -13,6 +19,10 @@ option = Option(S0, K, r, T, sigma, option_type)
 
 # set up the GUI size
 root = tk.Tk()
+
+###############
+# MAIN WINDOW #
+###############
 
 # first column
 S0_label = tk.Label(text='S0')
@@ -105,6 +115,22 @@ def calculate():
 calculate_button = tk.Button(text='Calculate', command=calculate)
 calculate_button.grid(row=6, column=3)
 
+# adapt window size to the number of widgets
+root.grid_rowconfigure(6, minsize=50)
+root.grid_columnconfigure(3, minsize=50)
+root.geometry('+%d+%d' % (50, 50))
+
+# make window not resizable
+root.resizable(False, False)
+
+# name the window
+root.title('Black-Scholes Pricer')
+calculate()
+
+#############################
+# IMPLIED VOLATILITY WINDOW #
+#############################
+
 # create separate window for implied volatility
 implied_volatility_window = tk.Toplevel(root)
 implied_volatility_window.title('Implied Volatility')
@@ -129,7 +155,13 @@ implied_volatility_value.config(text=str(round(100*option.implied_volatility(opt
 def calculate_implied_volatility():
     update()
     price = float(price_entry.get())
-    implied_volatility_value.config(text=str(round(100*option.implied_volatility(price), 3)) + '%')
+    text = None
+    try:
+        text = str(round(100*option.implied_volatility(price), 3)) + '%'
+        implied_volatility_value.config(text=text)
+    except:
+        text = 'N/A'
+        implied_volatility_value.config(text=text)
 
 calculate_implied_volatility_button = tk.Button(implied_volatility_window, text='Calculate', command=calculate_implied_volatility)
 calculate_implied_volatility_button.grid(row=2, column=1)
@@ -138,16 +170,67 @@ calculate_implied_volatility_button.grid(row=2, column=1)
 implied_volatility_window.grid_rowconfigure(2, minsize=50)
 implied_volatility_window.grid_columnconfigure(3, minsize=50)
 
-# adapt window size to the number of widgets
-root.grid_rowconfigure(6, minsize=50)
-root.grid_columnconfigure(3, minsize=50)
-root.geometry('+%d+%d' % (50, 50))
-
 # move the implied volatility window to the right of the main window
 implied_volatility_window.geometry('+%d+%d' % (50 + 2.2*root.winfo_width(), 50))
 
-# name the window
-root.title('Black-Scholes Pricer')
-calculate()
+# make window not resizable
+implied_volatility_window.resizable(False, False)
+
+###############
+# PLOT WINDOW #
+###############
+
+# create separate window for the plot
+plot_window = tk.Toplevel(root)
+plot_window.title('Ticker Spot Price')
+
+# first column
+ticker_label = tk.Label(plot_window, text='Ticker')
+ticker_label.grid(row=0, column=0)
+
+ticker_entry = tk.Entry(plot_window)
+ticker_entry.grid(row=0, column=1)
+ticker_entry.insert(0, 'AAPL')
+
+time_span_label = tk.Label(plot_window, text='Time Span')
+time_span_label.grid(row=1, column=0)
+
+time_span_option_str = tk.StringVar()
+time_span_option_menu = tk.OptionMenu(plot_window, time_span_option_str, '1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max')
+time_span_option_menu.grid(row=1, column=1)
+time_span_option_str.set('1y')
+
+def plot():
+    ticker = ticker_entry.get()
+    time_span = time_span_option_str.get()
+    data = yf.Ticker(ticker).history(period=time_span)
+    fig = Figure(figsize=(4, 4))
+    ax = fig.add_subplot(111)
+    ax.plot(data['Close'])
+    ax.set_title(ticker + ' Spot Price')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Price')
+    canvas = FigureCanvasTkAgg(fig, master=plot_window)
+    canvas.draw()
+    # add the plot to the window without changing the layout and center the plot
+    canvas.get_tk_widget().grid(row=3, column=0, columnspan=3)
+
+
+plot_button = tk.Button(plot_window, text='Plot', command=plot)
+plot_button.grid(row=2, column=1)
+
+# adapt window size to the number of widgets
+plot_window.grid_rowconfigure(2, minsize=50)
+plot_window.grid_columnconfigure(2, minsize=50)
+
+plot()
+
+# move the plot window below the implied volatility window
+plot_window.geometry('+%d+%d' % (50, 50 + 1.3*root.winfo_height()))
+
+# make window not resizable
+#plot_window.resizable(False, False)
+
+# start the GUI
 
 root.mainloop()
